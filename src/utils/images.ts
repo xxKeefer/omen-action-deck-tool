@@ -1,5 +1,11 @@
 import { Area } from "react-easy-crop";
+// import Jimp from "jimp";
+import mergeImages from "merge-images";
 
+export const makeDataObjectUrls = (data: FileList | null) => {
+  if (!data) return null;
+  return Array.from(data).map((file) => URL.createObjectURL(file));
+};
 export const makeDataObjectUrl = (data: FileList | null) => {
   if (!data) return null;
   return URL.createObjectURL(data[0]);
@@ -96,3 +102,23 @@ export async function getCroppedImage(
     }, "image/jpeg");
   });
 }
+
+// const bufferFromUrl = (url: string) => {
+//   const [, base64] = url.split(",");
+//   return Buffer.from(base64, "base64");
+// };
+
+// export const resize400x600 = async (url: string) => {
+//   const buffer = bufferFromUrl(url);
+
+//   const image = await Jimp.read(buffer);
+//   return await image.scaleToFit(400, 600).getBase64Async(Jimp.MIME_PNG);
+// };
+
+export const applyOverlay = async (image: string, overlay: string) => {
+  return await mergeImages([image, overlay], {
+    width: 400,
+    height: 600,
+    format: "image/png",
+  });
+};

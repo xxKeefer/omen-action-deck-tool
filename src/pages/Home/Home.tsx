@@ -1,4 +1,10 @@
-import { CropImage, Heading, Stack } from "~/components";
+import {
+  CropImage,
+  GenerateDeck,
+  Heading,
+  SelectOverlays,
+  Stack,
+} from "~/components";
 
 export const Home = () => {
   return (
@@ -8,6 +14,8 @@ export const Home = () => {
       </Heading>
 
       <CropImage />
+      <SelectOverlays />
+      <GenerateDeck />
     </Stack>
   );
 };
