@@ -1,6 +1,10 @@
 import { useCallback, useState } from "react";
 import Cropper, { Point, Area } from "react-easy-crop";
 import styled from "styled-components";
+import { useActionDeck } from "~/contexts";
+import { getCroppedImage, makeDataObjectUrl } from "~/utils/images";
+import { BigButton } from "../Buttons";
+import { Stack } from "../Layout";
 
 const Frame = styled.div`
   width: 400px;
@@ -22,41 +26,67 @@ const Frame = styled.div`
   }
 `;
 
-type Props = {
-  image: File;
-};
-
-export const CropImage = ({ image }: Props) => {
+export const CropImage = () => {
+  const {
+    setArt,
+    state: { art },
+  } = useActionDeck();
+  const [image, setImage] = useState<string | null>(null);
+  const [croppedArea, setCroppedArea] = useState<Area>({
+    height: 0,
+    width: 0,
+    x: 0,
+    y: 0,
+  });
   const [crop, setCrop] = useState<Point>({ x: 0, y: 0 });
   const [zoom, setZoom] = useState(1);
-  const onCropComplete = useCallback(
-    (croppedArea: Area, croppedAreaPixels: Area) => {
-      console.log(croppedArea, croppedAreaPixels);
-    },
-    []
-  );
+  const onCropComplete = useCallback((_: Area, croppedAreaPixels: Area) => {
+    setCroppedArea(croppedAreaPixels);
+  }, []);
+
   return (
-    <Frame>
-      <Cropper
-        image={URL.createObjectURL(image)}
-        crop={crop}
-        zoom={zoom}
-        aspect={2 / 3}
-        onCropChange={setCrop}
-        // onCropComplete={onCropComplete}
-        onZoomChange={setZoom}
-      />
+    <Stack>
       <input
-        type="range"
-        value={zoom}
-        min={1}
-        max={3}
-        step={0.1}
-        aria-labelledby="Zoom"
-        onChange={(e) => {
-          setZoom(Number(e.target.value));
+        type="file"
+        name="myImage"
+        onChange={(event) => {
+          setImage(makeDataObjectUrl(event.target.files));
         }}
       />
-    </Frame>
+      {image && (
+        <Frame>
+          <Cropper
+            image={image}
+            crop={crop}
+            zoom={zoom}
+            aspect={2 / 3}
+            onCropChange={setCrop}
+            onCropComplete={onCropComplete}
+            onZoomChange={setZoom}
+          />
+          <input
+            type="range"
+            value={zoom}
+            min={1}
+            max={3}
+            step={0.1}
+            aria-labelledby="Zoom"
+            onChange={(e) => {
+              setZoom(Number(e.target.value));
+            }}
+          />
+        </Frame>
+      )}
+      <BigButton
+        onClick={async () => {
+          if (!image) return;
+          const result = await getCroppedImage(image, croppedArea);
+          image && setArt(result);
+        }}
+      >
+        Confirm Crop
+      </BigButton>
+      {art && <img src={art} alt="cropped" />}
+    </Stack>
   );
 };

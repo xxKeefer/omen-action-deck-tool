@@ -1,96 +1,98 @@
-/**
- * This function was adapted from the one in the ReadMe of https://github.com/DominicTobias/react-image-crop
- * @param {File} image - Image File url
- * @param {Object} pixelCrop - pixelCrop Object provided by react-easy-crop
- * @param {number} rotation - optional rotation parameter
- */
-
 import { Area } from "react-easy-crop";
 
-const createImage = (file: File) =>
+export const makeDataObjectUrl = (data: FileList | null) => {
+  if (!data) return null;
+  return URL.createObjectURL(data[0]);
+};
+
+export const createImage = (dataURL: string) =>
   new Promise<HTMLImageElement>((resolve, reject) => {
     const image = new Image();
     image.addEventListener("load", () => resolve(image));
     image.addEventListener("error", (error) => reject(error));
-    image.setAttribute("crossOrigin", "anonymous"); // needed to avoid cross-origin issues on CodeSandbox
-    image.src = URL.createObjectURL(file);
+    image.src = dataURL;
   });
 
-function getRadianAngle(degreeValue: number) {
+export function getRadianAngle(degreeValue: number) {
   return (degreeValue * Math.PI) / 180;
 }
 
-export default async function getCroppedImg(
-  imageSrc: File,
+/**
+ * Returns the new bounding area of a rotated rectangle.
+ */
+export function rotateSize(width: number, height: number, rotation: number) {
+  const rotRad = getRadianAngle(rotation);
+
+  return {
+    width:
+      Math.abs(Math.cos(rotRad) * width) + Math.abs(Math.sin(rotRad) * height),
+    height:
+      Math.abs(Math.sin(rotRad) * width) + Math.abs(Math.cos(rotRad) * height),
+  };
+}
+
+/**
+ * This function was adapted from the one in the ReadMe of https://github.com/DominicTobias/react-image-crop
+ */
+export async function getCroppedImage(
+  dataURL: string,
   pixelCrop: Area,
-  rotation = 0
+  rotation = 0,
+  flip = { horizontal: false, vertical: false }
 ) {
-  const image = await createImage(imageSrc);
+  const image = await createImage(dataURL);
   const canvas = document.createElement("canvas");
   const context = canvas.getContext("2d");
 
-  if (!context) return null;
+  if (!context) {
+    return null;
+  }
 
-  const maxSize = Math.max(image.width, image.height);
-  const safeArea = 2 * ((maxSize / 2) * Math.sqrt(2));
+  const rotationRadians = getRadianAngle(rotation);
 
-  // set each dimensions to double largest dimension to allow for a safe area for the
-  // image to rotate in without being clipped by canvas context
-  canvas.width = safeArea;
-  canvas.height = safeArea;
-
-  // translate canvas context to a central location on image to allow rotating around the center.
-  context.translate(safeArea / 2, safeArea / 2);
-  context.rotate(getRadianAngle(rotation));
-  context.translate(-safeArea / 2, -safeArea / 2);
-
-  // draw rotated image and store data.
-  context.drawImage(
-    image,
-    safeArea / 2 - image.width * 0.5,
-    safeArea / 2 - image.height * 0.5
+  // calculate bounding box of the rotated image
+  const { width: boundingBoxWidth, height: boundingBoxHeight } = rotateSize(
+    image.width,
+    image.height,
+    rotation
   );
 
-  const data = context.getImageData(0, 0, safeArea, safeArea);
+  // set canvas size to match the bounding box
+  canvas.width = boundingBoxWidth;
+  canvas.height = boundingBoxHeight;
+
+  // translate canvas context to a central location to allow rotating and flipping around the center
+  context.translate(boundingBoxWidth / 2, boundingBoxHeight / 2);
+  context.rotate(rotationRadians);
+  context.scale(flip.horizontal ? -1 : 1, flip.vertical ? -1 : 1);
+  context.translate(-image.width / 2, -image.height / 2);
+
+  // draw rotated image
+  context.drawImage(image, 0, 0);
+
+  // croppedAreaPixels values are bounding box relative
+  // extract the cropped image using these values
+  const data = context.getImageData(
+    pixelCrop.x,
+    pixelCrop.y,
+    pixelCrop.width,
+    pixelCrop.height
+  );
 
   // set canvas width to final desired crop size - this will clear existing context
   canvas.width = pixelCrop.width;
   canvas.height = pixelCrop.height;
 
-  // paste generated rotate image with correct offsets for x,y crop values.
-  context.putImageData(
-    data,
-    0 - safeArea / 2 + image.width * 0.5 - pixelCrop.x,
-    0 - safeArea / 2 + image.height * 0.5 - pixelCrop.y
-  );
+  // paste generated rotate image at the top left corner
+  context.putImageData(data, 0, 0);
 
   // As Base64 string
-  // return canvas.toDataURL("image/jpeg");
-  return canvas;
+  // return canvas.toDataURL('image/jpeg');
+
+  // As a blob
+  return new Promise<string>((resolve) => {
+    canvas.toBlob((file) => {
+      if (file) resolve(URL.createObjectURL(file));
+    }, "image/jpeg");
+  });
 }
-
-export const generateDownload = async (image: File, crop: Area) => {
-  if (!crop || !image) {
-    return;
-  }
-
-  const canvas = await getCroppedImg(image, crop);
-
-  if (!canvas) return null;
-
-  canvas.toBlob(
-    (blob) => {
-      if (!blob) return null;
-      const previewUrl = window.URL.createObjectURL(blob);
-
-      const anchor = document.createElement("a");
-      anchor.download = "image.jpeg";
-      anchor.href = URL.createObjectURL(blob);
-      anchor.click();
-
-      window.URL.revokeObjectURL(previewUrl);
-    },
-    "image/jpeg",
-    0.66
-  );
-};
