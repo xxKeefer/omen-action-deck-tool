@@ -1,5 +1,5 @@
 import { createContext, ReactNode, useContext, useReducer } from "react";
-import { applyOverlay } from "~/utils/images";
+import { applyOverlay, cardsToZip } from "~/utils/images";
 
 type ActionDeckState = {
   art: string | null;
@@ -60,6 +60,12 @@ const useCardManager = (initialState: ActionDeckState) => {
       state.overlays.map((overlay) => applyOverlay(art, overlay))
     );
     setDeck(deck);
+    const zip = await cardsToZip(deck);
+    const link = document.createElement("a");
+    link.download = "action-deck";
+    link.href = URL.createObjectURL(zip);
+    link.click();
+
     return null;
   };
   return { state, setArt, setOverlays, generateDeck, setSpriteSheet };

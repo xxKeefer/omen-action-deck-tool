@@ -12,6 +12,7 @@ export const SelectOverlays = () => {
       <input
         type="file"
         multiple
+        accept="image/*"
         name="myImage"
         onChange={(event) => {
           setOverlays(makeDataObjectUrls(event.target.files));

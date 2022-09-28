@@ -1,6 +1,6 @@
 import { Area } from "react-easy-crop";
-// import Jimp from "jimp";
 import mergeImages from "merge-images";
+import JSZip from "jszip";
 
 export const makeDataObjectUrls = (data: FileList | null) => {
   if (!data) return null;
@@ -99,21 +99,9 @@ export async function getCroppedImage(
   return new Promise<string>((resolve) => {
     canvas.toBlob((file) => {
       if (file) resolve(URL.createObjectURL(file));
-    }, "image/jpeg");
+    }, "image/png");
   });
 }
-
-// const bufferFromUrl = (url: string) => {
-//   const [, base64] = url.split(",");
-//   return Buffer.from(base64, "base64");
-// };
-
-// export const resize400x600 = async (url: string) => {
-//   const buffer = bufferFromUrl(url);
-
-//   const image = await Jimp.read(buffer);
-//   return await image.scaleToFit(400, 600).getBase64Async(Jimp.MIME_PNG);
-// };
 
 export const applyOverlay = async (image: string, overlay: string) => {
   return await mergeImages([image, overlay], {
@@ -121,4 +109,12 @@ export const applyOverlay = async (image: string, overlay: string) => {
     height: 600,
     format: "image/png",
   });
+};
+
+export const cardsToZip = async (cards: string[]) => {
+  const zip = new JSZip();
+  cards.forEach((card, index) => {
+    zip.file(`card-${index}.png`, card.split(",")[1], { base64: true });
+  });
+  return await zip.generateAsync({ type: "blob" });
 };

@@ -49,6 +49,7 @@ export const CropImage = () => {
       <input
         type="file"
         name="myImage"
+        accept="image/*"
         onChange={(event) => {
           setImage(makeDataObjectUrl(event.target.files));
         }}
