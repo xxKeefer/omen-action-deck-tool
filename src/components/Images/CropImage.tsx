@@ -27,10 +27,7 @@ const Frame = styled.div`
 `;
 
 export const CropImage = () => {
-  const {
-    setArt,
-    state: { art },
-  } = useActionDeck();
+  const { setArt } = useActionDeck();
   const [image, setImage] = useState<string | null>(null);
   const [croppedArea, setCroppedArea] = useState<Area>({
     height: 0,
