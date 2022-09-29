@@ -3,8 +3,8 @@ import Cropper, { Point, Area } from "react-easy-crop";
 import styled from "styled-components";
 import { useActionDeck } from "~/contexts";
 import { getCroppedImage, makeDataObjectUrl } from "~/utils/images";
-import { BigButton } from "../Buttons";
-import { Stack } from "../Layout";
+import { BigButton, FileSelect } from "../Buttons";
+import { Row, Stack } from "../Layout";
 
 const Frame = styled.div`
   width: 400px;
@@ -46,14 +46,6 @@ export const CropImage = () => {
 
   return (
     <Stack>
-      <input
-        type="file"
-        name="myImage"
-        accept="image/*"
-        onChange={(event) => {
-          setImage(makeDataObjectUrl(event.target.files));
-        }}
-      />
       {image && (
         <Frame>
           <Cropper
@@ -78,16 +70,22 @@ export const CropImage = () => {
           />
         </Frame>
       )}
-      <BigButton
-        onClick={async () => {
-          if (!image) return;
-          const result = await getCroppedImage(image, croppedArea);
-          image && setArt(result);
-        }}
-      >
-        Confirm Crop
-      </BigButton>
-      {art && <img src={art} alt="cropped" />}
+      <Row>
+        <FileSelect
+          onSelect={(event) => {
+            setImage(makeDataObjectUrl(event.target.files));
+          }}
+        />
+        <BigButton
+          onClick={async () => {
+            if (!image) return;
+            const result = await getCroppedImage(image, croppedArea);
+            image && setArt(result);
+          }}
+        >
+          Confirm Crop
+        </BigButton>
+      </Row>
     </Stack>
   );
 };

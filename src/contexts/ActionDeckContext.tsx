@@ -1,4 +1,5 @@
 import { createContext, ReactNode, useContext, useReducer } from "react";
+import { ActionDeckSteps } from "~/constants";
 import { applyOverlay, cardsToZip } from "~/utils/images";
 
 type ActionDeckState = {
@@ -6,12 +7,14 @@ type ActionDeckState = {
   overlays: string[] | null;
   deck: string[] | null;
   spriteSheet: string | null;
+  step: keyof typeof ActionDeckSteps;
 };
 type Action =
   | { type: "setArt"; payload: ActionDeckState["art"] }
   | { type: "setOverlays"; payload: ActionDeckState["overlays"] }
   | { type: "setDeck"; payload: ActionDeckState["deck"] }
-  | { type: "setSpriteSheet"; payload: ActionDeckState["spriteSheet"] };
+  | { type: "setSpriteSheet"; payload: ActionDeckState["spriteSheet"] }
+  | { type: "setStep"; payload: ActionDeckState["step"] };
 
 type ActionDeckContextType = ReturnType<typeof useCardManager>;
 
@@ -51,6 +54,10 @@ const useCardManager = (initialState: ActionDeckState) => {
     dispatch({ type: "setSpriteSheet", payload: spriteSheet });
   };
 
+  const setStep = (step: ActionDeckState["step"]) => {
+    dispatch({ type: "setStep", payload: step });
+  };
+
   const generateDeck = async () => {
     if (!state.art || !state.overlays) return null;
 
@@ -60,7 +67,12 @@ const useCardManager = (initialState: ActionDeckState) => {
       state.overlays.map((overlay) => applyOverlay(art, overlay))
     );
     setDeck(deck);
-    const zip = await cardsToZip(deck);
+    return null;
+  };
+
+  const downloadDeck = async () => {
+    if (!state.deck) return null;
+    const zip = await cardsToZip(state.deck);
     const link = document.createElement("a");
     link.download = "action-deck";
     link.href = URL.createObjectURL(zip);
@@ -68,7 +80,16 @@ const useCardManager = (initialState: ActionDeckState) => {
 
     return null;
   };
-  return { state, setArt, setOverlays, generateDeck, setSpriteSheet };
+
+  return {
+    state,
+    setArt,
+    setOverlays,
+    generateDeck,
+    downloadDeck,
+    setStep,
+    setSpriteSheet,
+  };
 };
 
 const ActionDeckContext = createContext<ActionDeckContextType>({
@@ -77,11 +98,14 @@ const ActionDeckContext = createContext<ActionDeckContextType>({
     overlays: null,
     deck: null,
     spriteSheet: null,
+    step: 1,
   },
   setArt: () => null,
   setOverlays: () => null,
   generateDeck: () => Promise.resolve(null),
+  downloadDeck: () => Promise.resolve(null),
   setSpriteSheet: () => null,
+  setStep: () => null,
 });
 
 export const ActionDeckProvider = ({ children }: { children: ReactNode }) => {
@@ -92,6 +116,7 @@ export const ActionDeckProvider = ({ children }: { children: ReactNode }) => {
         overlays: null,
         spriteSheet: null,
         deck: null,
+        step: 1,
       })}
     >
       {children}

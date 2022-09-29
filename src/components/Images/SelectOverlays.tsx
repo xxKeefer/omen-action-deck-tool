@@ -1,5 +1,6 @@
 import { useActionDeck } from "~/contexts";
 import { makeDataObjectUrls } from "~/utils/images";
+import { FileSelect } from "../Buttons";
 import { Row, Stack } from "../Layout";
 
 export const SelectOverlays = () => {
@@ -9,20 +10,18 @@ export const SelectOverlays = () => {
   } = useActionDeck();
   return (
     <Stack>
-      <input
-        type="file"
-        multiple
-        accept="image/*"
-        name="myImage"
-        onChange={(event) => {
-          setOverlays(makeDataObjectUrls(event.target.files));
-        }}
-      />
       <Row>
         {overlays?.map((overlay) => (
           <img key={overlay} src={overlay} height="200px" />
         ))}
       </Row>
+      <FileSelect
+        multiple
+        accept="image/*"
+        onSelect={(event) => {
+          setOverlays(makeDataObjectUrls(event.target.files));
+        }}
+      />
     </Stack>
   );
 };
