@@ -1,4 +1,4 @@
-import React, { HTMLAttributes } from "react";
+import { HTMLAttributes } from "react";
 import styled, { DefaultTheme } from "styled-components";
 
 import { FontAlignment, FontSize, FontWeight } from "~/style/theme/fonts";
