@@ -11,9 +11,10 @@ export const SelectOverlays = () => {
   return (
     <Stack>
       <Row>
-        {overlays?.map((overlay) => (
-          <img key={overlay} src={overlay} height="200px" />
-        ))}
+        {overlays?.map(
+          (overlay) =>
+            overlay && <img key={overlay} src={overlay} height="200px" />
+        )}
       </Row>
       <FileSelect
         multiple

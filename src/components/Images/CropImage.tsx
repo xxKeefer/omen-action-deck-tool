@@ -2,7 +2,11 @@ import { useCallback, useState } from "react";
 import Cropper, { Point, Area } from "react-easy-crop";
 import styled from "styled-components";
 import { useActionDeck } from "~/contexts";
-import { getCroppedImage, makeDataObjectUrl } from "~/utils/images";
+import {
+  getCroppedImage,
+  makeDataObjectUrl,
+  resizeImage,
+} from "~/utils/images";
 import { BigButton, FileSelect } from "../Buttons";
 import { Row, Stack } from "../Layout";
 
@@ -77,7 +81,9 @@ export const CropImage = () => {
           onClick={async () => {
             if (!image) return;
             const result = await getCroppedImage(image, croppedArea);
-            image && setArt(result);
+            if (!result) return;
+            const resized = await resizeImage(result);
+            image && setArt(resized);
           }}
         >
           Confirm Crop

@@ -1,11 +1,11 @@
 import { createContext, ReactNode, useContext, useReducer } from "react";
 import { ActionDeckSteps } from "~/constants";
-import { applyOverlay, cardsToZip } from "~/utils/images";
+import { applyOverlay, cardsToZip, resizeImage } from "~/utils/images";
 
 type ActionDeckState = {
   art: string | null;
-  overlays: string[] | null;
-  deck: string[] | null;
+  overlays: (string | null)[] | null;
+  deck: (string | null)[] | null;
   spriteSheet: string | null;
   step: keyof typeof ActionDeckSteps;
 };
@@ -58,13 +58,26 @@ const useCardManager = (initialState: ActionDeckState) => {
     dispatch({ type: "setStep", payload: step });
   };
 
+  const resizeOverlays = async () => {
+    if (!state.overlays) return [null];
+    const resizedOverlays = await Promise.all(
+      state.overlays.map((overlay) => {
+        return overlay ? resizeImage(overlay) : null;
+      })
+    );
+    return resizedOverlays;
+  };
   const generateDeck = async () => {
     if (!state.art || !state.overlays) return null;
 
-    const art = state.art;
+    const art = await resizeImage(state.art);
+    const overlays = await resizeOverlays();
 
     const deck = await Promise.all(
-      state.overlays.map((overlay) => applyOverlay(art, overlay))
+      overlays.map(async (overlay) => {
+        if (!art || !overlay) return null;
+        return applyOverlay(art, overlay);
+      })
     );
     setDeck(deck);
     return null;
@@ -72,7 +85,10 @@ const useCardManager = (initialState: ActionDeckState) => {
 
   const downloadDeck = async () => {
     if (!state.deck) return null;
-    const zip = await cardsToZip(state.deck);
+    const cleanedDeck = state.deck.filter(
+      (card) => typeof card === "string"
+    ) as string[];
+    const zip = await cardsToZip(cleanedDeck);
     const link = document.createElement("a");
     link.download = "action-deck";
     link.href = URL.createObjectURL(zip);
