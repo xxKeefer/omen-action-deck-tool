@@ -5,7 +5,7 @@ import { ActionDeckSteps } from "~/constants";
 import { useActionDeck } from "~/contexts";
 
 export const DownloadDeck = () => {
-  const { setStep, state } = useActionDeck();
+  const { setStep, state, downloadDeck } = useActionDeck();
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -22,7 +22,9 @@ export const DownloadDeck = () => {
     <Stack>
       <GenerateDeck />
       {state.deck && (
-        <BigButton onClick={() => undefined}>Download Deck</BigButton>
+        <BigButton onClick={async () => await downloadDeck()}>
+          Download Deck
+        </BigButton>
       )}
     </Stack>
   );
