@@ -8,9 +8,9 @@ export const GenerateDeck = () => {
     <Stack>
       <Row>
         {state.deck &&
-          state.deck.map((card) => (
-            <img key={card} src={card} height="300px" />
-          ))}
+          state.deck.map(
+            (card) => card && <img key={card} src={card} height="300px" />
+          )}
       </Row>
 
       {state.art && state.overlays && (
