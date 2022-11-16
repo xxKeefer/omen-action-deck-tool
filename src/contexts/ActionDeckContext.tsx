@@ -79,7 +79,7 @@ const useCardManager = (initialState: ActionDeckState) => {
         return applyOverlay(art, overlay);
       })
     );
-    setDeck(deck);
+    setDeck([art, ...deck]);
     return null;
   };
 
