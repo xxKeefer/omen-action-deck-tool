@@ -2,13 +2,21 @@ import { Area } from "react-easy-crop";
 import mergeImages from "merge-images";
 import JSZip from "jszip";
 
-export const makeDataObjectUrls = (data: FileList | null) => {
-  if (!data) return null;
-  return Array.from(data).map((file) => URL.createObjectURL(file));
-};
 export const makeDataObjectUrl = (data: FileList | null) => {
   if (!data) return null;
   return URL.createObjectURL(data[0]);
+};
+
+export const makeBase64Strings = async (data: FileList | null) => {
+  if (!data) return null;
+  const batch = Array.from(data).map((file) => {
+    return new Promise<string>((resolve) => {
+      const reader = new FileReader();
+      reader.onload = () => resolve(reader.result as string);
+      reader.readAsDataURL(file);
+    });
+  });
+  return await Promise.all(batch);
 };
 
 export const createImage = async (url: string) =>
