@@ -3,6 +3,8 @@ import { useNavigate } from "react-router-dom";
 import { BigButton, SelectOverlays, Stack } from "~/components";
 import { ActionDeckSteps } from "~/constants";
 import { useActionDeck } from "~/contexts";
+import { LoadOverlayTheme } from "./LoadOverlayTheme";
+import { SaveOverlayTheme } from "./SaveOverlayTheme";
 
 export const UploadOverlays = () => {
   const { setStep, state } = useActionDeck();
@@ -17,6 +19,8 @@ export const UploadOverlays = () => {
   return (
     <Stack>
       <SelectOverlays />
+      <LoadOverlayTheme />
+      <SaveOverlayTheme />
       {state.overlays && (
         <BigButton onClick={() => navigate(`/${ActionDeckSteps[3]}`)}>
           Next

@@ -1,5 +1,5 @@
 import { useActionDeck } from "~/contexts";
-import { makeDataObjectUrls } from "~/utils/images";
+import { makeBase64Strings } from "~/utils/images";
 import { FileSelect } from "../Buttons";
 import { Row, Stack } from "../Layout";
 
@@ -19,8 +19,8 @@ export const SelectOverlays = () => {
       <FileSelect
         multiple
         accept="image/*"
-        onSelect={(event) => {
-          setOverlays(makeDataObjectUrls(event.target.files));
+        onSelect={async (event) => {
+          setOverlays(await makeBase64Strings(event.target.files));
         }}
       />
     </Stack>
