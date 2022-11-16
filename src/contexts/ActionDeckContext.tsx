@@ -14,7 +14,8 @@ type Action =
   | { type: "setOverlays"; payload: ActionDeckState["overlays"] }
   | { type: "setDeck"; payload: ActionDeckState["deck"] }
   | { type: "setSpriteSheet"; payload: ActionDeckState["spriteSheet"] }
-  | { type: "setStep"; payload: ActionDeckState["step"] };
+  | { type: "setStep"; payload: ActionDeckState["step"] }
+  | { type: "reset"; payload: ActionDeckState };
 
 type ActionDeckContextType = ReturnType<typeof useCardManager>;
 
@@ -30,6 +31,8 @@ const useCardManager = (initialState: ActionDeckState) => {
           return { ...state, deck: action.payload };
         case "setSpriteSheet":
           return { ...state, spriteSheet: action.payload };
+        case "reset":
+          return initialState;
 
         default:
           return state;
@@ -56,6 +59,10 @@ const useCardManager = (initialState: ActionDeckState) => {
 
   const setStep = (step: ActionDeckState["step"]) => {
     dispatch({ type: "setStep", payload: step });
+  };
+
+  const reset = () => {
+    dispatch({ type: "reset", payload: initialState });
   };
 
   const resizeOverlays = async () => {
@@ -105,6 +112,7 @@ const useCardManager = (initialState: ActionDeckState) => {
     downloadDeck,
     setStep,
     setSpriteSheet,
+    reset,
   };
 };
 
@@ -122,6 +130,7 @@ const ActionDeckContext = createContext<ActionDeckContextType>({
   downloadDeck: () => Promise.resolve(null),
   setSpriteSheet: () => null,
   setStep: () => null,
+  reset: () => null,
 });
 
 export const ActionDeckProvider = ({ children }: { children: ReactNode }) => {
